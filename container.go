@@ -31,23 +31,6 @@ type ContainerDesc struct {
 	PortBindings []PortBinding
 }
 
-func (c Container) HostPort(port string, portType PortType) (string, bool) {
-	if c.container == nil {
-		return "", false
-	} else if c.container.NetworkSettings == nil {
-		return "", false
-	}
-
-	m, ok := c.container.NetworkSettings.Ports[dc.Port(port+"/"+portType.String())]
-	if !ok {
-		return "", false
-	} else if len(m) == 0 {
-		return "", false
-	}
-
-	return m[0].HostPort, true
-}
-
 func (c ContainerDesc) run(project *ProjectEnv, testCase *TestCaseEnv) (*dc.Container, error) {
 	if c.Hooks.BeforeRun != nil {
 		if err := c.Hooks.BeforeRun(project, testCase); err != nil {
@@ -152,4 +135,21 @@ type ContainerNetwork struct {
 
 type Container struct {
 	container *dc.Container
+}
+
+func (c Container) HostPort(port string, portType PortType) (string, bool) {
+	if c.container == nil {
+		return "", false
+	} else if c.container.NetworkSettings == nil {
+		return "", false
+	}
+
+	m, ok := c.container.NetworkSettings.Ports[dc.Port(port+"/"+portType.String())]
+	if !ok {
+		return "", false
+	} else if len(m) == 0 {
+		return "", false
+	}
+
+	return m[0].HostPort, true
 }

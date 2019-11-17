@@ -50,6 +50,11 @@ func (p *ProjectEnv) NewTestCaseEnv() *TestCaseEnv {
 	}
 }
 
+func (p *ProjectEnv) Container(name string) (*Container, bool) {
+	container, ok := p.createdContainers[name]
+	return container, ok
+}
+
 func (p *ProjectEnv) FindFreeHostPort() (string, error) {
 	container, err := ContainerDesc{
 		Image:        ExternalImage("alpine:latest"),

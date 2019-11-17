@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/pkg/errors"
+	"go.uber.org/multierr"
 )
 
 type PortType byte
@@ -42,7 +43,26 @@ func (t *TestCaseEnv) Run() error {
 }
 
 func (t *TestCaseEnv) Close() error {
+	var err error
+
+	for _, container := range t.createdContainers {
+		if removeErr := t.projectEnv.client.RemoveContainer(container.container.ID); removeErr != nil {
+			err = multierr.Append(err, removeErr)
+		}
+	}
+
+	for _, network := range t.createdNetworks {
+		if removeErr := t.projectEnv.client.RemoveNetwork(network.ID); removeErr != nil {
+			err = multierr.Append(err, removeErr)
+		}
+	}
+
 	return nil
+}
+
+func (p *TestCaseEnv) Container(name string) (*Container, bool) {
+	container, ok := p.createdContainers[name]
+	return container, ok
 }
 
 func (t *TestCaseEnv) createNetworks() error {
