@@ -2,6 +2,7 @@ package testenv
 
 import (
 	"log"
+	"sync"
 
 	"github.com/pkg/errors"
 	"go.uber.org/multierr"
@@ -28,6 +29,9 @@ type TestCaseEnv struct {
 	projectEnv        *ProjectEnv
 	createdNetworks   map[string]*Network
 	createdContainers map[string]*Container
+
+	variablesMx sync.RWMutex
+	variables   map[string]interface{}
 }
 
 func (t *TestCaseEnv) Run() error {
@@ -60,11 +64,23 @@ func (t *TestCaseEnv) Close() error {
 	return nil
 }
 
-func (p *TestCaseEnv) Container(name string) (*Container, bool) {
-	container, ok := p.createdContainers[name]
+func (t *TestCaseEnv) Container(name string) (*Container, bool) {
+	container, ok := t.createdContainers[name]
 	return container, ok
 }
 
+func (t *TestCaseEnv) Set(key string, value interface{}) {
+	t.variablesMx.Lock()
+	t.variables[key] = value
+	t.variablesMx.Unlock()
+}
+
+func (t *TestCaseEnv) Get(key string) interface{} {
+	t.variablesMx.RLock()
+	defer t.variablesMx.RUnlock()
+
+	return t.variables[key]
+}
 func (t *TestCaseEnv) createNetworks() error {
 	for networkName, networkDesc := range t.projectEnv.desc.TestCaseEnv.Networks {
 		log.Printf("Creating project network %s", networkName)
