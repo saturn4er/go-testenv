@@ -54,7 +54,13 @@ func (p *ProjectEnv) Container(name string) (*Container, bool) {
 	container, ok := p.createdContainers[name]
 	return container, ok
 }
-
+func (p *ProjectEnv) MustContainer(name string) *Container {
+	container, ok := p.createdContainers[name]
+	if !ok {
+		panic("no container with name " + name)
+	}
+	return container
+}
 func (p *ProjectEnv) FindFreeHostPort() (string, error) {
 	container, err := ContainerDesc{
 		Image:        ExternalImage("alpine:latest"),

@@ -153,3 +153,12 @@ func (c Container) HostPort(port string, portType PortType) (string, bool) {
 
 	return m[0].HostPort, true
 }
+
+func (c Container) MustHostPort(port string, portType PortType) string {
+	port, ok := c.HostPort(port, portType)
+	if !ok {
+		panic("no port " + port + "/" + portType.String() + " in container")
+	}
+
+	return port
+}

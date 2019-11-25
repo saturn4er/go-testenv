@@ -35,6 +35,13 @@ type TestCaseEnv struct {
 }
 
 func (t *TestCaseEnv) Run() error {
+	hooks := t.projectEnv.desc.TestCaseEnv.Hooks
+	if hooks.BeforeRun != nil {
+		if err := hooks.BeforeRun(t.projectEnv, t); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
 	if err := t.createNetworks(); err != nil {
 		return errors.WithStack(err)
 	}
@@ -43,6 +50,11 @@ func (t *TestCaseEnv) Run() error {
 		return errors.WithStack(err)
 	}
 
+	if hooks.AfterRun != nil {
+		if err := hooks.AfterRun(t.projectEnv, t); err != nil {
+			return errors.WithStack(err)
+		}
+	}
 	return nil
 }
 
@@ -113,7 +125,12 @@ func (t *TestCaseEnv) runContainers() error {
 	return nil
 }
 
+type TestCaseHooks struct {
+	BeforeRun func(project *ProjectEnv, testCase *TestCaseEnv) error
+	AfterRun  func(project *ProjectEnv, testCase *TestCaseEnv) error
+}
 type TestCaseEnvDesc struct {
 	Networks   map[string]NetworkDesc
 	Containers map[string]*ContainerDesc
+	Hooks      TestCaseHooks
 }
