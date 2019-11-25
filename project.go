@@ -47,6 +47,7 @@ func (p *ProjectEnv) NewTestCaseEnv() *TestCaseEnv {
 		projectEnv:        p,
 		createdNetworks:   map[string]*Network{},
 		createdContainers: map[string]*Container{},
+		variables:         map[string]interface{}{},
 	}
 }
 
